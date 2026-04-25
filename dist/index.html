@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoppoTerm</title>
+    <style>
+        :root {
+            --accent-blue: #00d4ff;
+            --glass-bg: rgba(20, 20, 25, 0.8);
+        }
+
+        body {
+            background: #050505;
+            color: #eee;
+            font-family: 'Fira Code', monospace;
+            margin: 0;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+
+        #terminal {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            /* LiquidGlass風のぼかし */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 80vh;
+        }
+
+        .prompt {
+            color: var(--accent-blue);
+            font-weight: bold;
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            color: #00ff88;
+            /* アイコンに合わせたグリーン */
+            outline: none;
+            width: 100%;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="terminal">
+        <div id="output">NoppoTerm [Version 1.0.0]<br>Welcome, Noppo.</div>
+        <div style="display:flex; margin-top:10px;">
+            <span class="prompt">noppo@NoppoTerm:~$ &nbsp;</span>
+            <input type="text" id="cmd" autofocus>
+        </div>
+    </div>
+</body>
+
+</html>
