@@ -11,14 +11,16 @@
     <style>
         :root {
             --noppo-blue: #00d4ff;
-            --glass-bg: rgba(10, 15, 25, 0.75);
-            --border-color: rgba(0, 212, 255, 0.3);
-            --toolbar-bg: rgba(5, 5, 10, 0.95);
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            /* ライトデザイン：白ベース */
+            --border-color: rgba(0, 212, 255, 0.2);
+            --text-main: #222;
         }
 
         body,
         html {
-            background: #000;
+            background: #f0f2f5;
+            /* 明るい背景 */
             margin: 0;
             padding: 0;
             width: 100%;
@@ -26,21 +28,87 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            font-family: 'Fira Code', monospace;
+            font-family: 'Fira Code', -apple-system, sans-serif;
+            color: var(--text-main);
         }
 
-        /* LiquidGlass Container */
+        /* --- 接続GUIレイヤー --- */
+        #gui-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f2f5;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .login-card {
+            width: 85%;
+            max-width: 400px;
+            padding: 30px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            border: 1px solid white;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .login-card h2 {
+            color: var(--noppo-blue);
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--noppo-blue);
+        }
+
+        .connect-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--noppo-blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        /* --- ターミナルレイヤー --- */
+        #term-layer {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+        }
+
         #terminal-wrapper {
             flex: 1;
             margin: 12px;
             padding: 8px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(35px);
-            -webkit-backdrop-filter: blur(35px);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--border-color);
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 212, 255, 0.1);
         }
 
         #terminal {
@@ -48,24 +116,12 @@
             height: 100%;
         }
 
-        /* xterm.js Transparent Background */
-        .xterm .xterm-viewport {
-            background-color: transparent !important;
-        }
-
-        /* Functional Toolbar */
         #toolbar {
             height: 52px;
             display: flex;
-            background: var(--toolbar-bg);
+            background: white;
             border-top: 1px solid var(--border-color);
             overflow-x: auto;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        #toolbar::-webkit-scrollbar {
-            display: none;
         }
 
         .tool-btn {
@@ -74,45 +130,51 @@
             justify-content: center;
             height: 100%;
             padding: 0 20px;
-            font-size: 14px;
-            font-weight: 500;
             color: var(--noppo-blue);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            cursor: pointer;
-            transition: background 0.2s;
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+            font-size: 14px;
         }
 
-        .tool-btn:active {
-            background: rgba(0, 212, 255, 0.2);
-        }
-
-        /* Keyboard Adjusting helper */
         #vp-shim {
             height: 0;
-            transition: height 0.1s;
+        }
+
+        /* 表示切り替え用クラス */
+        body.connected #gui-layer {
+            transform: translateY(-100%);
+        }
+
+        body.connected #term-layer {
+            opacity: 1;
+            pointer-events: auto;
         }
     </style>
 </head>
 
 <body>
 
-    <div id="terminal-wrapper">
-        <div id="terminal"></div>
+    <div id="gui-layer">
+        <div class="login-card">
+            <h2>NoppoTerm SSH</h2>
+            <input type="text" id="host" placeholder="Host (IP Address)" value="">
+            <input type="text" id="user" placeholder="User Name">
+            <input type="password" id="pass" placeholder="Password">
+            <button class="connect-btn" onclick="connect()">CONNECT</button>
+        </div>
     </div>
 
-    <div id="toolbar">
-        <div class="tool-btn" data-key="Tab">TAB</div>
-        <div class="tool-btn" data-key="Ctrl">CTRL</div>
-        <div class="tool-btn" data-key="Esc">ESC</div>
-        <div class="tool-btn" data-key="↑">UP</div>
-        <div class="tool-btn" data-key="↓">DOWN</div>
-        <div class="tool-btn" data-key="←">LEFT</div>
-        <div class="tool-btn" data-key="→">RIGHT</div>
-        <div class="tool-btn" data-key="|">|</div>
-        <div class="tool-btn" data-key="-">-</div>
-        <div class="tool-btn" data-key="/">/</div>
+    <div id="term-layer">
+        <div id="terminal-wrapper">
+            <div id="terminal"></div>
+        </div>
+        <div id="toolbar">
+            <div class="tool-btn" data-key="Tab">TAB</div>
+            <div class="tool-btn" data-key="Ctrl">CTRL</div>
+            <div class="tool-btn" data-key="Esc">ESC</div>
+            <div class="tool-btn" data-key="↑">UP</div>
+            <div class="tool-btn" data-key="↓">DOWN</div>
+        </div>
     </div>
-
     <div id="vp-shim"></div>
 
     <script type="module">
@@ -122,81 +184,63 @@
         const term = new Terminal({
             theme: {
                 background: 'transparent',
-                foreground: '#00d4ff',
-                cursor: '#ffffff',
-                selectionBackground: 'rgba(0, 212, 255, 0.3)',
-                black: '#000000',
-                blue: '#00d4ff',
-                cyan: '#00ffff',
-                green: '#00ffcc',
-                magenta: '#cc00ff',
-                red: '#ff0055',
-                white: '#ffffff',
-                yellow: '#ffff00'
+                foreground: '#333', /* ライトデザイン用の文字色 */
+                cursor: '#00d4ff',
+                selectionBackground: 'rgba(0, 212, 255, 0.2)',
+                black: '#000000', blue: '#00d4ff', white: '#ffffff'
             },
             fontFamily: "'Fira Code', monospace",
-            fontSize: 14,
-            cursorBlink: true,
-            allowTransparency: true,
-            lineHeight: 1.2
+            fontSize: 14, cursorBlink: true, allowTransparency: true
         });
 
         term.open(document.getElementById('terminal'));
-        term.write('\x1b[1;34mNoppoTerm SSH v1.0.0\x1b[0m\r\n\x1b[34m- Ready for Secure Access -\x1b[0m\r\n\r\n');
 
-        // SSH Data Listeners
-        SSH.addListener('data', (data) => {
-            term.write(data.value);
-        });
+        // 接続処理
+        window.connect = async () => {
+            const host = document.getElementById('host').value;
+            const user = document.getElementById('user').value;
+            const pass = document.getElementById('pass').value;
 
-        term.onData(data => {
-            SSH.sendCommand({ data: data });
-        });
+            if (!host || !user || !pass) return alert("All fields are required.");
 
-        // Toolbar Interaction
-        document.querySelectorAll('.tool-btn').forEach(btn => {
-            btn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                const key = btn.getAttribute('data-key');
-                let code = '';
-                switch (key) {
-                    case 'Tab': code = '\t'; break;
-                    case 'Esc': code = '\x1b'; break;
-                    case '↑': code = '\x1b[A'; break;
-                    case '↓': code = '\x1b[B'; break;
-                    case '←': code = '\x1b[D'; break;
-                    case '→': code = '\x1b[C'; break;
-                    default: code = key;
-                }
-                SSH.sendCommand({ data: code });
-            });
-        });
-
-        // Visual Viewport Handling (Keyboard)
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', () => {
-                const shim = document.getElementById('vp-shim');
-                const diff = window.innerHeight - window.visualViewport.height;
-                shim.style.height = diff > 0 ? `${diff}px` : '0';
-                window.scrollTo(0, 0);
-            });
-        }
-
-        // Connection Execution
-        async function startSession() {
             try {
-                term.write('\x1b[34m[System] Connecting to Host...\x1b[0m\r\n');
-                await SSH.connect({
-                    host: 'YOUR_HOST',
-                    user: 'YOUR_USER',
-                    pass: 'YOUR_PASS'
-                });
-            } catch (e) {
-                term.write('\r\n\x1b[31m[Error] ' + e + '\x1b[0m\r\n');
-            }
-        }
+                document.body.classList.add('connected');
+                term.write('\x1b[34m[System] Connecting to ' + host + '...\x1b[0m\r\n');
 
-        startSession();
+                await SSH.connect({ host, user, pass });
+
+                // タップでキーボードを出す
+                document.getElementById('terminal-wrapper').onclick = () => {
+                    term.focus();
+                    document.querySelector('.xterm-helper-textarea')?.focus();
+                };
+            } catch (e) {
+                alert("Connect Error: " + e);
+                document.body.classList.remove('connected');
+            }
+        };
+
+        // SSH 受信
+        SSH.addListener('data', (data) => term.write(data.value));
+
+        // 入力送信
+        term.onData(data => SSH.sendCommand({ data }));
+
+        // ツールバー
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.ontouchstart = (e) => {
+                e.preventDefault();
+                const key = btn.dataset.key;
+                const codes = { 'Tab': '\t', 'Esc': '\x1b', '↑': '\x1b[A', '↓': '\x1b[B' };
+                SSH.sendCommand({ data: codes[key] || key });
+            };
+        });
+
+        // キーボードリサイズ対策
+        window.visualViewport?.addEventListener('resize', () => {
+            const shim = document.getElementById('vp-shim');
+            shim.style.height = `${window.innerHeight - window.visualViewport.height}px`;
+        });
     </script>
 </body>
 
