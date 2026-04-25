@@ -3,58 +3,201 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NoppoTerm</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NoppoTerm SSH</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --accent-blue: #00d4ff;
-            --glass-bg: rgba(20, 20, 25, 0.8);
+            --noppo-blue: #00d4ff;
+            --glass-bg: rgba(10, 15, 25, 0.75);
+            --border-color: rgba(0, 212, 255, 0.3);
+            --toolbar-bg: rgba(5, 5, 10, 0.95);
         }
 
-        body {
-            background: #050505;
-            color: #eee;
-            font-family: 'Fira Code', monospace;
+        body,
+        html {
+            background: #000;
             margin: 0;
-            padding: 15px;
-            overflow-x: hidden;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* LiquidGlass Container */
+        #terminal-wrapper {
+            flex: 1;
+            margin: 12px;
+            padding: 8px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 212, 255, 0.1);
         }
 
         #terminal {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            /* LiquidGlass風のぼかし */
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            min-height: 80vh;
-        }
-
-        .prompt {
-            color: var(--accent-blue);
-            font-weight: bold;
-        }
-
-        input {
-            background: transparent;
-            border: none;
-            color: #00ff88;
-            /* アイコンに合わせたグリーン */
-            outline: none;
             width: 100%;
-            font-size: 16px;
+            height: 100%;
+        }
+
+        /* xterm.js Transparent Background */
+        .xterm .xterm-viewport {
+            background-color: transparent !important;
+        }
+
+        /* Functional Toolbar */
+        #toolbar {
+            height: 52px;
+            display: flex;
+            background: var(--toolbar-bg);
+            border-top: 1px solid var(--border-color);
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #toolbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tool-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--noppo-blue);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .tool-btn:active {
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        /* Keyboard Adjusting helper */
+        #vp-shim {
+            height: 0;
+            transition: height 0.1s;
         }
     </style>
 </head>
 
 <body>
-    <div id="terminal">
-        <div id="output">NoppoTerm [Version 1.0.0]<br>Welcome, Noppo.</div>
-        <div style="display:flex; margin-top:10px;">
-            <span class="prompt">noppo@NoppoTerm:~$ &nbsp;</span>
-            <input type="text" id="cmd" autofocus>
-        </div>
+
+    <div id="terminal-wrapper">
+        <div id="terminal"></div>
     </div>
+
+    <div id="toolbar">
+        <div class="tool-btn" data-key="Tab">TAB</div>
+        <div class="tool-btn" data-key="Ctrl">CTRL</div>
+        <div class="tool-btn" data-key="Esc">ESC</div>
+        <div class="tool-btn" data-key="↑">UP</div>
+        <div class="tool-btn" data-key="↓">DOWN</div>
+        <div class="tool-btn" data-key="←">LEFT</div>
+        <div class="tool-btn" data-key="→">RIGHT</div>
+        <div class="tool-btn" data-key="|">|</div>
+        <div class="tool-btn" data-key="-">-</div>
+        <div class="tool-btn" data-key="/">/</div>
+    </div>
+
+    <div id="vp-shim"></div>
+
+    <script type="module">
+        import { registerPlugin } from '@capacitor/core';
+        const SSH = registerPlugin('SSH');
+
+        const term = new Terminal({
+            theme: {
+                background: 'transparent',
+                foreground: '#00d4ff',
+                cursor: '#ffffff',
+                selectionBackground: 'rgba(0, 212, 255, 0.3)',
+                black: '#000000',
+                blue: '#00d4ff',
+                cyan: '#00ffff',
+                green: '#00ffcc',
+                magenta: '#cc00ff',
+                red: '#ff0055',
+                white: '#ffffff',
+                yellow: '#ffff00'
+            },
+            fontFamily: "'Fira Code', monospace",
+            fontSize: 14,
+            cursorBlink: true,
+            allowTransparency: true,
+            lineHeight: 1.2
+        });
+
+        term.open(document.getElementById('terminal'));
+        term.write('\x1b[1;34mNoppoTerm SSH v1.0.0\x1b[0m\r\n\x1b[34m- Ready for Secure Access -\x1b[0m\r\n\r\n');
+
+        // SSH Data Listeners
+        SSH.addListener('data', (data) => {
+            term.write(data.value);
+        });
+
+        term.onData(data => {
+            SSH.sendCommand({ data: data });
+        });
+
+        // Toolbar Interaction
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const key = btn.getAttribute('data-key');
+                let code = '';
+                switch (key) {
+                    case 'Tab': code = '\t'; break;
+                    case 'Esc': code = '\x1b'; break;
+                    case '↑': code = '\x1b[A'; break;
+                    case '↓': code = '\x1b[B'; break;
+                    case '←': code = '\x1b[D'; break;
+                    case '→': code = '\x1b[C'; break;
+                    default: code = key;
+                }
+                SSH.sendCommand({ data: code });
+            });
+        });
+
+        // Visual Viewport Handling (Keyboard)
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                const shim = document.getElementById('vp-shim');
+                const diff = window.innerHeight - window.visualViewport.height;
+                shim.style.height = diff > 0 ? `${diff}px` : '0';
+                window.scrollTo(0, 0);
+            });
+        }
+
+        // Connection Execution
+        async function startSession() {
+            try {
+                term.write('\x1b[34m[System] Connecting to Host...\x1b[0m\r\n');
+                await SSH.connect({
+                    host: 'YOUR_HOST',
+                    user: 'YOUR_USER',
+                    pass: 'YOUR_PASS'
+                });
+            } catch (e) {
+                term.write('\r\n\x1b[31m[Error] ' + e + '\x1b[0m\r\n');
+            }
+        }
+
+        startSession();
+    </script>
 </body>
 
 </html>
